@@ -1,0 +1,29 @@
+# Notes:
+#   - if you have some state variable <STATE_VAR>, then you must have 3 equations specific to it in this format:
+#     - in the 'synapse' group, `d<STATE_VAR> = ...`
+#     - in the 'synapse' group, `<STATE_VAR>_total_post = ...`
+#     - in the 'target_neuron' group, `<STATE_VAR>_total = ...`
+#
+#
+synapse_eqns: |
+    tau_GABAa = 5*ms : second
+    ds_GABAa/dt=1000.*2.*(1 + tanh(v_pre/(4.*mV)))*(1-s_GABAa)/ms - s_GABAa/tau_GABAa : 1 (clock-driven)
+    s_GABAa_total_post = s_GABAa : 1 (summed)
+
+target_neuron_eqns: |
+    g_GABAa = 0.1*msiemens : siemens
+    E_GABAa = -80*mV : volt
+    s_GABAa_total : 1
+    # N_pre or N_post?
+    # Note: there must be an equation for a variable named 'I'
+    # Note: use uppercase I for current, since lowercase 'i' is used for
+    #   describing connections
+    I_GABAa = -g_GABAa/N_pre*s_GABAa_total*(v-E_GABAa) : amp
+
+# i and j are reserved words in the connection context
+# No comments are allowed in the connection_equations context
+# Default: all-to-all?? TODO
+connection_eqns: |
+    abs(i-j)<=2
+
+# Note: MUST have an emtpy line at the end of the group!

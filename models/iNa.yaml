@@ -1,0 +1,16 @@
+# Hodgkin-Huxley sodium current
+
+neuron_eqns: |
+    g_Na = 120*msiemens : siemens
+    E_Na = 50*mV : volt
+    v_shift_Na = -65*mV : volt
+    alpha_m_Na = (2.5-.1*(v-v_shift_Na)/mV)/(exp(2.5-.1*(v-v_shift_Na)/mV)-1)/ms : Hz
+    beta_m_Na = 4*exp(-(v-v_shift_Na)/mV/18)/ms : Hz
+    alpha_h_Na = .07*exp(-(v-v_shift_Na)/mV/20)/ms : Hz
+    beta_h_Na = 1./(exp(3-.1*(v-v_shift_Na)/mV)+1)/ms : Hz
+    I_Na = -g_Na*m_Na**3*h_Na*(v-E_Na) : amp
+    # ODEs and ICs
+    dm_Na/dt = alpha_m_Na*(1-m_Na)-beta_m_Na*m_Na : 1
+    dh_Na/dt = alpha_h_Na*(1-h_Na)-beta_h_Na*h_Na : 1
+    
+# Note: MUST have an emtpy line at the end of the group!

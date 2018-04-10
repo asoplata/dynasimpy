@@ -1,0 +1,22 @@
+# iAMPA: synaptic current, fast threshold modulation with excitatory AMPAergic parameters
+
+synapse_eqns: |
+    tau_d_AMPA = 2*ms : second
+    tau_r_AMPA = 0.4*ms : second
+    ds_AMPA/dt = -s_AMPA/tau_d_AMPA + ((1-s_AMPA)/tau_r_AMPA)*(1+tanh(v_pre/10.)) : 1 (clock-driven)
+    s_AMPA_total_post = s_AMPA : 1 (summed)
+
+target_neuron_eqns: |
+    g_AMPA = 0.1*msiemens : siemens
+    E_AMPA = -80*mV : volt
+    s_AMPA_total : 1
+    # N_pre or N_post?
+    # Note: there must be an equation for a variable named 'I'
+    # Note: use uppercase I for current, since lowercase 'i' is used for
+    #   describing connections
+    I_AMPA = -g_AMPA/N_pre*s_AMPA_total*(v-E_AMPA) : amp
+
+connection_eqns: |
+
+
+# Note: MUST have an emtpy line at the end of the group!

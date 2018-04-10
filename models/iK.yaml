@@ -1,0 +1,15 @@
+# Hodgkin-Huxley potassium current
+
+neuron_eqns: |
+    # Parameters
+    g_K = 36*msiemens : siemens
+    E_K = -77*mV : volt
+    v_shift_K = -65*mV : volt
+    # Functions
+    alpha_n_K = (.1-.01*(v-v_shift_K)/mV)/(exp(1-.1*(v-v_shift_K)/mV)-1)/ms : Hz
+    beta_n_K = .125*exp(-(v-v_shift_K)/mV/80)/ms : Hz
+    I_K = -g_K*n_K**4.*(v-E_K) : amp
+    # ODEs and ICs
+    dn_K/dt = alpha_n_K*(1-n_K)-beta_n_K*n_K : 1
+    
+# Note: MUST have an emtpy line at the end of the group!
