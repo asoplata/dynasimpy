@@ -1,5 +1,10 @@
 .directory
+*.egg-info
+*.egg-info/*
 .idea
+*.pyc
+.ropeproject
 .smt
+__pycache__/*
 backup
 tags

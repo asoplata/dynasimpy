@@ -5,21 +5,23 @@ class Specification:
 
     def create_population(self, index: int=None):
         # TODO: error checking for if index doesn't equal existing index +1
-        index_str = str(index)
-        self.populations[index_str] = {}
-        self.populations[index_str]['name'] = None
-        self.populations[index_str]['size'] = int()
-        self.populations[index_str]['equations'] = None
-        self.populations[index_str]['mechanism_list'] = []
-        self.populations[index_str]['parameters'] = {}
+        # TODO test that using integers for indices here doesn't break anything
+        # index_str = str(index)
+        self.populations[index] = {}
+        self.populations[index]['name'] = None
+        self.populations[index]['size'] = int()
+        self.populations[index]['equations'] = None
+        self.populations[index]['mechanism_list'] = []
+        self.populations[index]['parameters'] = {}
 
     def create_connection(self, index: int=None, direction: str={}):
         # TODO: error checking for if index doesn't equal existing index +1
-        index_str = str(index)
-        self.connections[index_str] = {}
-        self.connections[index_str]['direction'] = None
-        self.connections[index_str]['mechanism_list'] = []
-        self.connections[index_str]['parameters'] = {}
+        # TODO test that using integers for indices here doesn't break anything
+        # index_str = str(index)
+        self.connections[index] = {}
+        self.connections[index]['direction'] = None
+        self.connections[index]['mechanism_list'] = []
+        self.connections[index]['parameters'] = {}
 
     def load_from_json(self):
         # TODO

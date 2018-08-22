@@ -1,11 +1,14 @@
 from .Model import Model
 from .SimulatorOptions import SimulatorOptions
 
+# In general, the below is not recommended, but it is specifically recommended by the Brian2 package.
 from brian2 import *
 
+# import ipdb
+
 import json
-import jsonpickle
-import pickle
+# import jsonpickle
+# import pickle
 
 def simulate(spec, **kwargs):
     """This is the master function, so to speak"""
@@ -56,15 +59,45 @@ def simulate(spec, **kwargs):
     # with open('full_brian_model.pickle','w') as outfile:
     #     pickle.dump(brian_model, outfile)
 
+    # ipdb.set_trace()
+
     # pass
-    Network.add(brian_model.neurons['1']['neuron_object'])
-    net = Network(collect())
+    # for some reason, `Network(collect())` not finding objects embedded in the brian_model struct, but can add them artificially
+    net = Network()
+
+
+    ## Create monitors to save data
+    neuron1_data = StateMonitor(brian_model.neurons[1]['neuron_object'], 'v', record=True)
+    # spikes = SpikeMonitor(brian_model.neurons[1]['neuron_object'])
+
+    ## Gather all the model components, including neurons, synapses, and monitors
+    net.add(brian_model.neurons[1]['neuron_object'])
+    net.add(neuron1_data)
+
+    # Initial conditions
+    brian_model.neurons[1]['neuron_object'].v = -65*mV
+    brian_model.neurons[1]['neuron_object'].m_Na = 0.1
+    brian_model.neurons[1]['neuron_object'].h_Na = 0.04
+    brian_model.neurons[1]['neuron_object'].n_K =  0.0
+    # very sensitive
+    brian_model.neurons[1]['neuron_object'].h_T =  0.0
+    brian_model.neurons[1]['neuron_object'].CaBuffer =  0.0001
+
+    prefs.codegen.target = 'numpy'
+
+    # # debug
+    # ipdb.set_trace()
     # suddenly, need to now manually add objects via Network.add(<object>?), not that that's not clear
     # TODO need to fix network collection
-
-
     # print('derp3')
-    run(100*ms, report='text')
+    # running `run` by itself just uses `Network(collect())`, which isn't working for us right now
+    net.run(100*ms, report='text')
+
+    figure()
+    plot(neuron1_data.t/ms, neuron1_data[0].v/mV)
+
+    # # print('derp3')
+    # run(100*ms, report='text')
     pass
 
     # section: convertSpecToBrianModel (single object?)

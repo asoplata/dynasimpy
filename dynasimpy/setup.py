@@ -14,7 +14,7 @@ from os import path
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 # Arguments marked as "Required" below must be included for upload to PyPI.
@@ -32,7 +32,7 @@ setup(
     # There are some restrictions on what makes a valid project name
     # specification here:
     # https://packaging.python.org/specifications/core-metadata/#name
-    name='DynaSimPy',  # Required
+    name='dynasimpy',  # Required
 
     # Versions should comply with PEP 440:
     # https://www.python.org/dev/peps/pep-0440/
@@ -61,7 +61,7 @@ setup(
     #
     # This field corresponds to the "Home-Page" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#home-page-optional
-    url='https://github.com/pypa/sampleproject',  # Optional
+    url='https://github.com/asoplata/dynasimpy',  # Optional
 
     # This should be your name or the name of the organization which owns the
     # project.
@@ -114,7 +114,8 @@ setup(
     #
     #   py_modules=["my_module"],
     #
-    packages='dynasimpy'# Required
+    # packages='dynasimpy',# Required
+    packages=find_packages(),# Required
     # packages=find_packages(exclude=['contrib', 'docs', 'tests']),  # Required
 
     # This field lists other packages that your project depends on to run.
@@ -123,7 +124,7 @@ setup(
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['brian2', 'pypet', 'matplotlib'],  # Optional
+    install_requires=['brian2', 'matplotlib', 'pandas'],  # Optional
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). Users will be able to install these using the "extras"
@@ -134,36 +135,36 @@ setup(
     # Similar to `install_requires` above, these must be valid existing
     # projects.
     extras_require={  # Optional
-        'dev': ['check-manifest'],
-        'test': ['coverage'],
+       'dev': ['check-manifest'],
+       'test': ['coverage'],
     },
 
-    # If there are data files included in your packages that need to be
-    # installed, specify them here.
-    #
-    # If using Python 2.6 or earlier, then these have to be included in
-    # MANIFEST.in as well.
-    package_data={  # Optional
-        'sample': ['package_data.dat'],
-    },
+    # # If there are data files included in your packages that need to be
+    # # installed, specify them here.
+    # #
+    # # If using Python 2.6 or earlier, then these have to be included in
+    # # MANIFEST.in as well.
+    # package_data={  # Optional
+    #    'sample': ['package_data.dat'],
+    # },
 
-    # Although 'package_data' is the preferred approach, in some case you may
-    # need to place data files outside of your packages. See:
-    # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files
-    #
-    # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
-    data_files=[('my_data', ['data/data_file'])],  # Optional
+    # # Although 'package_data' is the preferred approach, in some case you may
+    # # need to place data files outside of your packages. See:
+    # # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files
+    # #
+    # # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
+    # data_files=[('my_data', ['data/data_file'])],  # Optional
 
-    # To provide executable scripts, use entry points in preference to the
-    # "scripts" keyword. Entry points provide cross-platform support and allow
-    # `pip` to create the appropriate form of executable for the target
-    # platform.
-    #
-    # For example, the following would provide a command called `sample` which
-    # executes the function `main` from this package when invoked:
-    entry_points={  # Optional
-        'console_scripts': [
-            'sample=sample:main',
-        ],
-    },
+    # # To provide executable scripts, use entry points in preference to the
+    # # "scripts" keyword. Entry points provide cross-platform support and allow
+    # # `pip` to create the appropriate form of executable for the target
+    # # platform.
+    # #
+    # # For example, the following would provide a command called `sample` which
+    # # executes the function `main` from this package when invoked:
+    # entry_points={  # Optional
+    #    'console_scripts': [
+    #        'sample=sample:main',
+    #    ],
+    # },
 )

@@ -1,18 +1,22 @@
 from .SimulatorOptions import SimulatorOptions
 from .Specification import Specification
 
+# In general, the below is not recommended, but it is specifically recommended by the Brian2 package.
 from brian2 import *
 # from brian2 import Equations
 # from brian2 import NeuronGroup
 # from brian2 import Synapses
 # import brian2 as b2
 
-import json
+# import ipdb
+
+# import json
 # import jsonpickle
 
 import os
+import re
 import sys
-import yaml
+# import yaml
 
 class Model:
     def __init__(self, spec: Specification = None, sim_ops: SimulatorOptions = None):
@@ -24,9 +28,9 @@ class Model:
         # 2.0 Load and convert populations from specification
         # 3.0 Build complete equations string for each neuron type
         # 4.0 Build complete equations string for each synapse type
-        # 5.0 Apply modifications from either parametrization or variation by creating namespace_parametrizations and _variations
+        # 5.0 TODO NOPE Apply modifications from either parametrization or variation by creating namespace_parametrizations and _variations
         # 5.1 Apply single parametrization via namespacing
-        # 5.2 Apply varied parameters via namespacing
+        # 5.2 TODO NOPE Apply varied parameters via namespacing
         # 6.0 Save everything needed for reproducing model simulation!
         # 6.1 Save model equations, structure, and namespacing
         # 6.2 Save simulator options
@@ -69,6 +73,7 @@ class Model:
                     # self.synapses[index][mechanism]['current']['name'] = str([value for value in
                     #                                                           self.synapses[index][mechanism]['converted_eqns']['target_neuron_eqns'].eq_names
                     #                                                           if value.startswith('I_')][0])
+                    pass
                 # output['current']['equation'] = str([value for key, value in output['target_neuron'].items() if key.startswith('I_')][0])
 
         # 2.0 Load and convert populations from specification
@@ -174,7 +179,8 @@ class Model:
             for mechanism in self.synapses[index]['mechanism_list']:
                 self.synapses[index][mechanism]['namespace_parametrizations'] = {}
 
-                identifier_string_addition = '_' + self.synapses[index]['source'] + '_' + self.synapses[index]['target']
+                identifier_string_addition = ''
+                # identifier_string_addition = '_' + self.synapses[index]['source'] + '_' + self.synapses[index]['target']
                 test_synapse_eqns_object = Equations(self.synapses[index][mechanism]['full_synapse_eqns'])
 
                 for parameter, parameter_value in spec.connections[index]['parameters'].items():
@@ -252,25 +258,29 @@ class Model:
                     condition_eqns = self.synapses[index][mechanism]['converted_eqns']['connection_eqns']
                 self.synapses[index][mechanism]['synapse_object'].connect(condition=condition_eqns)
 
-        # Network has to be collected in the same scope as the synapse and neuron creation?
-        net = Network(collect())
+        # # Network has to be collected in the same scope as the synapse and neuron creation?
+        # net = Network(collect())
+
+
         pass
 
     def convert_mechanism(self, raw_eqns: dict, mech: str, source: str = None, source_size: int = None, target: str = None, neuron: str = None):
 
+        pass
         substituted_eqns = {}
-        # this causes a bunch of bad things to happen, like making changes to output be changes to the originaal attribute of raw_eqns!
-        # substituted_eqns = raw_eqns
+        # # this causes a bunch of bad things to happen, like making changes to output be changes to the originaal attribute of raw_eqns!
+        # # substituted_eqns = raw_eqns
 
-        # Note no underscore at the end
-        # TODO error checking
-        if source != None:
-            identifier_string_addition = '_' + source + '_' + target
-            # identifier_string_addition = '_' + source + '_' + target + '_' + mech
-        elif neuron != None:
-            identifier_string_addition = '_' + neuron
+        # # Note no underscore at the end
+        # # TODO error checking
+        # if source != None:
+        #     # identifier_string_addition = ''
+        #     identifier_string_addition = '_' + source + '_' + target
+        #     # identifier_string_addition = '_' + source + '_' + target + '_' + mech
+        # elif neuron != None:
+        #     identifier_string_addition = ''
+        #     # identifier_string_addition = '_' + neuron
             # identifier_string_addition = '_' + neuron + '_' + mech
-
 
         for group_key, group_value in raw_eqns.items():
             if group_key == 'connection_eqns':
@@ -283,43 +293,52 @@ class Model:
             #     2. we can use its processing of 'names', 'eq_names', and 'identifiers' to make our own customizations
             # If you can figure out a different way to replace variable names in Equations objects after object
             #     creation, without using insane regular expressions, then do it...
+
             group_eqns = Equations(raw_eqns[group_key])
 
             substitutions_dict = {}
-            # problem: dicts will be reorg'd when changing, so keep what you're iterating over and what you're changing separate
-            # 'names' are just what are defined on the LHS of the equations given.
-            #   - E.g. a parameter that is used in some equations, but is NOT defined in that set of equations, will NOT be a 'name' in the Equations object
-            # 'eq_names' is similar to 'names', but only includes names of equations, NOT parameters
-            for name in group_eqns.names:
-                # 1. build dict of original IDs and their final IDs
-                if (name == 'v') or (name.startswith('N_')):
-                    continue
-                elif name.endswith('_total_post'):
-                    substitutions_dict[name] = name.replace('_total_post', identifier_string_addition + '_total_post')
-                elif name.endswith('_total'):
-                    substitutions_dict[name] = name.replace('_total', identifier_string_addition + '_total')
-                else:
-                    substitutions_dict[name] = name.replace(name, name + identifier_string_addition)
+            # # problem: dicts will be reorg'd when changing, so keep what you're iterating over and what you're changing separate
+            # # 'names' are just what are defined on the LHS of the equations given.
+            # #   - E.g. a parameter that is used in some equations, but is NOT defined in that set of equations, will NOT be a 'name' in the Equations object
+            # # 'eq_names' is similar to 'names', but only includes names of equations, NOT parameters
+            # for name in group_eqns.names:
+            #     # 1. build dict of original IDs and their final IDs
+            #     if (name == 'v') or (name.startswith('N_')):
+            #         continue
+            #     else:
+            #         substitutions_dict[name] = name
+            #     # elif name.endswith('_total_post'):
+            #     #     substitutions_dict[name] = name.replace('_total_post', identifier_string_addition + '_total_post')
+            #     # elif name.endswith('_total'):
+            #     #     substitutions_dict[name] = name.replace('_total', identifier_string_addition + '_total')
+            #     # else:
+                #     substitutions_dict[name] = name.replace(name, name + identifier_string_addition)
 
-            # if 'N_pre' in group_eqns.identifiers:
-                # substitutions_dict['N_pre'] = source_size
+            # why was this commented
+            if 'N_pre' in group_eqns.identifiers:
+                substitutions_dict['N_pre'] = source_size
 
-            if 'external_dependencies' in raw_eqns:
-                for dependency in raw_eqns['external_dependencies']:
-                    if (name == 'v') or (name.startswith('N_')):
-                        sys.exit('''You have '{}' indicated as an external dependency in mechanism '{}', but you are using 
-                        reserved words in your naming, which is not allowed.'''.format(dependency, mech))
-                    elif name.endswith('_total_post'):
-                        substitutions_dict[dependency] = dependency.replace('_total_post', identifier_string_addition + '_total_post')
-                    elif name.endswith('_total'):
-                        substitutions_dict[dependency] = dependency.replace('_total', identifier_string_addition + '_total')
-                    else:
-                        substitutions_dict[dependency] = dependency.replace(dependency, dependency + identifier_string_addition)
+            # if 'external_dependencies' in raw_eqns:
+            #     for dependency in raw_eqns['external_dependencies']:
+            #         if (name == 'v') or (name.startswith('N_')):
+            #             # TODO is this actually necessary?
+            #             sys.exit('''You have '{}' indicated as an external dependency in mechanism '{}', but you are using
+            #             reserved words in your naming, which is not allowed.'''.format(dependency, mech))
+            #         else:
+            #             substitutions_dict[dependency] = dependency
+            #         # elif name.endswith('_total_post'):
+            #         #     substitutions_dict[dependency] = dependency.replace('_total_post', identifier_string_addition + '_total_post')
+            #         # elif name.endswith('_total'):
+            #         #     substitutions_dict[dependency] = dependency.replace('_total', identifier_string_addition + '_total')
+            #         # else:
+            #         #     substitutions_dict[dependency] = dependency.replace(dependency, dependency + identifier_string_addition)
 
-            # 2. in one step, make a new resulting Equations object that includes ALL the name changes in an "exec" kind of way
-            # this is where the magic happens
-            # this is only used for 1. applying our substitutions and 2. using the Equations object as an error-checker
-            # substitution_arguments = str(["{}={}".format(key, value) for key, value in substitutions_dict.items()])
+            # # 2. in one step, make a new resulting Equations object that includes ALL the name changes in an "exec" kind of way
+            # # this is where the magic happens
+            # # this is only used for 1. applying our substitutions and 2. using the Equations object as an error-checker
+            # # substitution_arguments = str(["{}={}".format(key, value) for key, value in substitutions_dict.items()])
+
+            # # this is also used for making "target_neuron_eqns" maybe?
             substitution_arguments = str(["{}='{}'".format(key, value) for key, value in substitutions_dict.items()])
             substitution_arguments = substitution_arguments.replace('"','')
             substitution_arguments = substitution_arguments.strip('[]')
@@ -340,7 +359,8 @@ class Model:
     def lookup_mechanism(self, mech: str):
 
         output = {}
-        extensions = ['.yaml']
+        extensions = ['.mech']
+        # extensions = ['.yaml']
         # TODO write ugly regex parser to convert DS mech files to dspy type
 
         # TODO have universal settings path, maybee env var?
@@ -350,9 +370,23 @@ class Model:
             for extension in extensions:
                 extended_mech = mech + extension
                 if extended_mech in files:
-                   mechanism_filename = os.path.join(root, extended_mech)
-                   with open(mechanism_filename) as f:
-                       output = yaml.load(f)
+                    mechanism_filename = os.path.join(root, extended_mech)
+                    # with open(mechanism_filename) as f:
+                    with open(mechanism_filename, 'r') as f:
+                        output = f.read()
+                        # output = yaml.load(f)
+
+                    # Split newlines into different strings
+                    output = re.split(r'\n', output)
+                    # Split semicolons into different strings
+                    # output = re.split(r'\;', output)
+                    for line in output:
+                        # Remove all percent-comments, including those after real code
+                        output[line] = re.sub(r'%.*$',r'', output[line])
+
+                    # Remove all empty strings in list of strings, from
+                    output = list(filter(None, output))
+                    pass
 
         if not mechanism_filename:
             sys.exit("Cannot find mechanism file for mechanism named '{}'".format(mech))
