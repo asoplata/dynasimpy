@@ -15,6 +15,11 @@ formalize the following, break into specific individual pieces:
 
 - do NOT allocate time to learning as a prerequisite before coding right now, since 1. most important thing is to finish, even if code is ugly, and 2. need to continuously learn anyways, and 3. don't go around rewriting code unless specifically in "refactoring" phase
 
+- TODO use pop name keys instead of numbers to index in the spec data structure, since it should all have the same interface
+- TODO make sure hierarchy of cxns is 1. dir then 2. mechanism, and has support for multiple mechs in same dir
+- TODO non-synapse input which only needs target, like PoissonInput, should be in connections but require special "directions" handling (direction given simply as target?)
+- TODO include section in yaml files with "monitor True/False"
+
 # s6-python-dynasimpy :dspy:s6:
 
 ## assumptions (need to write down as go along)
@@ -571,3 +576,121 @@ long-run to "join the Brian2 community"
 
 ## future ideas
 - use GNU parallel for local embarrassingly parallel jobs
+
+# rebuild planning
+
+running tutorial.py:
+1. create spec = Specification object
+    1. if json passed, load_json
+    - no validation
+2. create md = Metadata object
+    1. instantiate with simulator_options dict (including analysis and plotting_functions lists) and variations dict
+    2. also initialize internal flags like preprocessed_flag = False, standalone_flag = False, and simulation_number = 0 (error state)
+    3. separate variations dict
+        1. variations like [ ['<population/direction>', '<mechanism or master_equations>', '<variable>', '<Brian2-compatible units>', <number or list of numbers or tuple of numbers>], ... ]
+3. run dspy.simulate(spec, md)
+    1. if md['preprocessed_flag'] = False # this is the "setup" block, not the "run" block which is below
+        1. Metadata.create_output_location
+        2. Model:
+            1. load and convert cxns
+            2. load and convert pops
+            3. validate pops
+            4. validate cxns:
+                1. syns
+                2. non-syns e.g. Poisson
+            5. apply singleton params and validate again
+            6. md.hashes['model_build_hash'] = git hash
+            7. save base_model.json
+        3. md.sim_table = md.contruct_variations
+            1. tuple vs list
+        5. md['preprocessed_flag'] = True ('preprocessed_flag', 'standalone_flag', and 'simulation_number' are internal vars used for determining the order of execution')
+        6. save metadata.json
+        7. for sim_table, dspy.write_scripts (simulation_number starts at 1, not 0, since 0 indicates error/not done yet)
+            ```{python}
+            ('''
+            /env/bin/python3
+            
+            imports
+            
+            spec = dspy.Specification("base_model.json")
+            md = dspy.Metadata("metadata.json")
+            md['standalone_flag'] = True
+            md['simulation_number'] = %s%
+            data = dspy.simulate(spec, md)
+            data = dspy.analyze(data, analyze_functions)
+            dspy.plot(data, plotting_functions)
+            if md['save_data_flag'] = True
+                with open data/sim00002_....
+                    convert hdf5
+            ''', %s = ii)
+            ```
+            - use sim0000#_date(to the day)_script.py for easy batch array submission
+    2. if md['preprocessed_flag'] = True (NOT elif, since preproc state is changed by above block) # this is the main "run" block
+        1. create 'run_all_scripts_locally.sh' (right now, just serially, since parallel requires file locking)
+        2. write single 'submit_batch_script.sh' using array
+        1. if md['standalone_flag'] = True # this is executing script here, now, corresponding to md['simulation_number']
+            1. save md.hashes['runtime_hash'] = git hash
+            2. Model.create_neurongroups
+            3. Model.create_synapses
+            4. Model.create_nonsynapse_connections
+            5. instantiate Monitors object from desired monitors
+            6. call dspy.brianRunner func # for b2-specific run commands
+                1. net/collection by brian2
+                2. run
+            7. instantiate Data object from Monitors object
+            8. save spec and md objects, in dict form, to data
+            9. then break
+        3. elif md['cluster_flag'] = True
+            2. submit 'qsub submit_batch_script.sh' along with outputs
+            3. then break
+        4. elif md['jupyter_flag'] = False # this assumes you're running sims locally
+            2. print to terminal simple example commands to run all scripts or run one at a time
+            3. then break
+        5. elif md['jupyter_flag'] = True # this assumes you're running sims locally
+            2. start jupyter notebook in output_dir
+            3. print to cell: simple example commands to run all scripts or run one at a time
+        6. else
+            1. you shouldn't be here, since all possibilities should be satisfied!
+
+- data format:
+    sim0000#_datestamp_data.hdf5:
+        [<number> (list)
+            connections (dict):
+                { '<direction>' :
+                    { '<mechanism>' :
+                        { '<variable>' :
+                            dataframe of monitor of that variable, with NO Brian2 units!!!
+                        }
+                    }
+                }
+            metadata (final version, in dict form)
+            populations (dict):
+            { '<population>' :
+                { '<mechanism>' : # use 'master_equations' if no explicit mechanism name, like for voltage 'v'
+                    { '<variable>' : # this includes any SpikeMonitors, like v_spikes
+                        dataframe of monitor of that variable, with NO Brian2 units!!!
+                    }
+                }
+            }
+            specification (final version, in dict form)
+            time (list)
+
+- output directory format:
+    sim00000#_datestamp_output/
+        data/sim0000#_datestamp_data.hdf5
+        notebooks/datestamp_notebook.ipynb
+        plots/sim0000#_datestamp_plot00#.png
+        scripts/sim0000#_datestamp_script.py
+        base_model.json
+        metadata.json
+        run_all_scripts_locally.sh
+
+- variations format:
+    [ (list)
+        ['<population/direction>', '<mechanism or master_equations>', '<variable>', '<Brian2-compatible units>', <number OR list of numbers OR tuple of numbers>],
+        [<another variation>],
+        ...
+    ]
+
+- assumptions:
+    - "Anything NOT part of the base scientific model of equations belongs in the Metadata object"

@@ -1,5 +1,5 @@
-from .SimulatorOptions import SimulatorOptions
-from .Specification import Specification
+from . import SimulatorOptions
+from . import Specification
 
 # In general, the below is not recommended, but it is specifically recommended by the Brian2 package.
 from brian2 import *
@@ -12,11 +12,14 @@ from brian2 import *
 
 # import json
 # import jsonpickle
+import ujson as json
 
 import os
 import re
 import sys
-# import yaml
+# Apparently "ruamel.yaml" is currently the best-supported/most up-to-date Python YAML lib
+from ruamel.yaml import YAML
+yaml=YAML(typ='safe')
 
 class Model:
     def __init__(self, spec: Specification = None, sim_ops: SimulatorOptions = None):
@@ -83,7 +86,7 @@ class Model:
             self.neurons[index] = {}
             self.neurons[index]['name'] = spec.populations[index]['name']
             self.neurons[index]['size'] = spec.populations[index]['size']
-            self.neurons[index]['master_eqns'] = spec.populations[index]['master_eqns']
+            self.neurons[index]['master_equations'] = spec.populations[index]['master_equations']
             self.neurons[index]['mechanism_list'] = spec.populations[index]['mechanism_list']
 
             for mechanism in spec.populations[index]['mechanism_list']:
@@ -103,7 +106,7 @@ class Model:
         # 3.0 Build complete equations string for each neuron type
         for index, value in self.neurons.items():
             self.neurons[index]['full_neuron_eqns'] = ''
-            self.neurons[index]['full_neuron_eqns'] += self.neurons[index]['master_eqns'] + '\n'
+            self.neurons[index]['full_neuron_eqns'] += self.neurons[index]['master_equations'] + '\n'
             items_in_current = []
 
             # add all contributions from intrinsic mechs
@@ -151,12 +154,12 @@ class Model:
             self.neurons[index]['namespace_parametrizations'] = {}
 
             identifier_string_addition = '_' + self.neurons[index]['name']
-            test_master_eqns_object = Equations(self.neurons[index]['master_eqns'])
+            test_master_equations_object = Equations(self.neurons[index]['master_equations'])
             test_neuron_eqns_object = Equations(self.neurons[index]['full_neuron_eqns'])
 
             for parameter, parameter_value in spec.populations[index]['parameters'].items():
                 # apply parameters to master_equations
-                for name in test_master_eqns_object.names:
+                for name in test_master_equations_object.names:
                     if name.startswith(parameter):
                         if (   parameter == 'v'
                             or parameter.startswith('N_')
@@ -266,7 +269,7 @@ class Model:
 
     def convert_mechanism(self, raw_eqns: dict, mech: str, source: str = None, source_size: int = None, target: str = None, neuron: str = None):
 
-        pass
+        # pass
         substituted_eqns = {}
         # # this causes a bunch of bad things to happen, like making changes to output be changes to the originaal attribute of raw_eqns!
         # # substituted_eqns = raw_eqns
@@ -359,9 +362,7 @@ class Model:
     def lookup_mechanism(self, mech: str):
 
         output = {}
-        extensions = ['.mech']
-        # extensions = ['.yaml']
-        # TODO write ugly regex parser to convert DS mech files to dspy type
+        extensions = ['.yaml']
 
         # TODO have universal settings path, maybee env var?
         print('Current working directory is {}'.format(os.getcwd()))
@@ -373,20 +374,16 @@ class Model:
                     mechanism_filename = os.path.join(root, extended_mech)
                     # with open(mechanism_filename) as f:
                     with open(mechanism_filename, 'r') as f:
-                        output = f.read()
-                        # output = yaml.load(f)
+                        output = yaml.load(f)
 
-                    # Split newlines into different strings
-                    output = re.split(r'\n', output)
-                    # Split semicolons into different strings
-                    # output = re.split(r'\;', output)
-                    for line in output:
-                        # Remove all percent-comments, including those after real code
-                        output[line] = re.sub(r'%.*$',r'', output[line])
+                    # # Split newlines or semicolons into different strings
+                    # for key in output:
+                    #     output[key] = re.split(r'\n|\;', output[key])
 
-                    # Remove all empty strings in list of strings, from
-                    output = list(filter(None, output))
-                    pass
+                    # # Remove all empty strings in list of strings. Needs to be run in its own for-loop since writes to
+                    # # dictionaries can change their key ordering.
+                    # for key in output:
+                    #     output[key] = list(filter(None, output[key]))
 
         if not mechanism_filename:
             sys.exit("Cannot find mechanism file for mechanism named '{}'".format(mech))
