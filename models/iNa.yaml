@@ -1,6 +1,6 @@
 # Hodgkin-Huxley sodium current
 
-neuron_eqns: |
+population_equations: |
     g_Na = 120*msiemens : siemens
     E_Na = 50*mV : volt
     v_shift_Na = -65*mV : volt

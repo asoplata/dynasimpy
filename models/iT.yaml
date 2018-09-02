@@ -8,7 +8,7 @@
 # Exposes: calcium current "@ITChing2010TC" for other mechanisms (e.g. required by "CaBufferChing2010TC" mechanism)
 # Tags: calcium, current, intrinsic, thalamus
 
-neuron_eqns: |
+population_equations: |
     # Parameters
     g_T = 2*msiemens : siemens
     v_shift_T = -2*mV : volt

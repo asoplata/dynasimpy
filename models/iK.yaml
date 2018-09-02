@@ -1,6 +1,6 @@
 # Hodgkin-Huxley potassium current
 
-neuron_eqns: |
+population_equations: |
     # Parameters
     g_K = 36*msiemens : siemens
     E_K = -77*mV : volt

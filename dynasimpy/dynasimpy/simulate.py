@@ -1,54 +1,59 @@
-from .Model import Model
-from .SimulatorOptions import SimulatorOptions
+from . import Metadata
+from . import BrianModel
+from . import Specification
 
 # In general, the below is not recommended, but it is specifically recommended by the Brian2 package.
 from brian2 import *
+import ujson as json
 
-# import ipdb
 
-import json
-# import jsonpickle
-# import pickle
+def simulate(spec: Specification, md: Metadata):
+    """
+    This is the master function to run simulation(s).
 
-def simulate(spec, **kwargs):
-    """This is the master function, so to speak"""
+    Depending on the options specified, this performs a simulation locally,
+    prepares simulation(s) for the user to run either in console or in a newly-opened Jupyter notebook, or submits
+    a batch of simulation(s) to run on a cluster. This is NOT a "pure" function (i.e., it has state changes/"side
+    effects"), but, with few exceptions, should only be calling pure functions. In general, only this function and
+    those that call it should have state changes/side effects, not functions lower on the chain.
 
-    # TODO: if first arg is string, search mechanism/model path for a "model file". If it's a Specification object, then the user wants to create a new spec
-    # TODO: this implies that user needs to be able to load a model file and then change the...what? spec?
+    :param spec: The Specification object which describes the scientific model to use in simulation(s)
+    :type spec: Specification
+    :param md: The Metadata object which describes how to run any simulation(s) of the model, including parameter
+    variations to sweep over, flags, etc.
+    :type md: Metadata
+    :return:
+    """
 
-    # in python, passed ints and strs are immutable??? TODO test
-    # 0.1 Validate the specification
-    spec = spec.validate_spec()
+    # If no internal flags detected, then add them
+    if md.simulator_options.get('preprocessed_flag') is None:
+        md.simulator_options.update({
+            'jupyter_flag': True,
+            'preprocessed_flag': False,
+            'simulation_number': 0,
+            'standalone_flag': False
+        })
 
-    # 0.2 process non-specification arguments
-    if bool(kwargs):
-        # debug
-        print('--> kwargs before vary pop is {}'.format(kwargs))
+    md.validate()
 
-        # 0.2.1 Remove vary from the options
-        if 'vary' in kwargs:
-            vary = kwargs.pop('vary')
+    # 1.0 This is the "setup" block; see 2.0 below for the "run" block
+    if md.simulator_options['preprocessed_flag'] is False:
+        # 1.1 Create the output location
+        md.simulator_options['output_directory'] = md.create_output_location()
 
-        # debug
-        print('--> vary is {}'.format(vary))
-        for key, value in kwargs.items():
-            print(key, ":", value)
+        bm = BrianModel(spec)
+        bm.load_mechanisms()
+        bm.validate_mechanisms()
+        bm.parse_connections_directions()
+        bm.setup_population_mechanisms()
+        # bm.setup_connection_mechanisms()
 
-        # 0.2.2 Validate the simulator options
-        sim_ops = SimulatorOptions()
-
-        # debug
-        print('simops before validation {}'.format(sim_ops.__dict__))
-
-        sim_ops.validate_options(options=kwargs)
-        # debug
-        print('simops after validation {}'.format(sim_ops.__dict__))
-    else:
-        sim_ops = SimulatorOptions()
-        print('simops WITHOUT validation {}'.format(sim_ops.__dict__))
+        # 1.2 Load and validate the connection mechanisms
+        # 1.3 Load and validate the population mechanisms
+        pass
 
     # 0.3 Convert DynaSim specification to Brian2-compatible model
-    brian_model = Model(spec, sim_ops)
+    brian_model = BrianModel(spec, md)
     # print(brian_model)
 
     # brian_model_enc = jsonpickle.encode(brian_model)

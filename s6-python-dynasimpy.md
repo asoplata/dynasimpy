@@ -181,7 +181,7 @@ brian specifically
 ### singularity containers?
 
 ### todos from code
-- from Model.py
+- from BrianModel.pyel.py
     - move this to org mode, and make a SCRIPT just for testing and plotting
       any hidden normxn of brian – AND make a DynaSim simulation for direct
       comparison!!!
@@ -591,7 +591,7 @@ running tutorial.py:
 3. run dspy.simulate(spec, md)
     1. if md['preprocessed_flag'] = False # this is the "setup" block, not the "run" block which is below
         1. Metadata.create_output_location
-        2. Model:
+        2. BrianModel:
             1. load and convert cxns
             2. load and convert pops
             3. validate pops
@@ -630,9 +630,9 @@ running tutorial.py:
         2. write single 'submit_batch_script.sh' using array
         1. if md['standalone_flag'] = True # this is executing script here, now, corresponding to md['simulation_number']
             1. save md.hashes['runtime_hash'] = git hash
-            2. Model.create_neurongroups
-            3. Model.create_synapses
-            4. Model.create_nonsynapse_connections
+            2. BrianModel.create_neurongroups
+            3. BrianModel.create_synapses
+            4. BrianModel.create_nonsynapse_connections
             5. instantiate Monitors object from desired monitors
             6. call dspy.brianRunner func # for b2-specific run commands
                 1. net/collection by brian2
@@ -676,7 +676,7 @@ running tutorial.py:
             time (list)
 
 - output directory format:
-    sim00000#_datestamp_output/
+    <user-output-directory>/
         data/sim0000#_datestamp_data.hdf5
         notebooks/datestamp_notebook.ipynb
         plots/sim0000#_datestamp_plot00#.png
@@ -694,3 +694,9 @@ running tutorial.py:
 
 - assumptions:
     - "Anything NOT part of the base scientific model of equations belongs in the Metadata object"
+
+# synaptic normalization
+
+DynaSimPy currently does NOT support automatic synaptic conductance/weight normalization calculation based on connectivity architecture. YOU, as the user, need to handle your own synaptic normalization in your connection mechanism files. In other words, if you have 20 E cells connected all-to-all to 10 I cells, DynaSimPy does NOT automatically divide your E->I synaptic conductance by 20 so that the total sum of the conductance is the correct value. This is because people from different computational neuroscience backgrounds use different connectivity paradigms, and terms can be ambiguous depending on what you consider to be "default" connectivity. For example, to someone who is used to all-to-all connectivity, dividing their synaptic conductance by something like `N_pre` sounds like it would divide the conductance by the *total* number of presynaptic/source cells, but to someone who is used to radius-based connectivity, `N_pre` sounds like the number of *connected*, NOT total, presynaptic/source cells. By not assuming connectivity paradigms on behalf of the user, this allows you, the user, to take full advantage of Brian's powerful connectivity support without getting lost in assumptions introduced by DynaSimPy. (That said, if you want to help with adding this functionality to DynaSimPy, then let me know/make an Issue on GitHub and we'll work on it!)
+
+Also note that, if you want to measure just how many synapses Brian is using based on your connectivity, based on Synapse object `S`, you can simply examine the length `len(S)`; see https://groups.google.com/forum/#!topic/briansupport/8LO5zfYm2FY .

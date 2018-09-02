@@ -8,7 +8,7 @@
 # Exposes: calcium concentration "@CaBuffer" for other mechanisms (e.g.,
 #   required by "iTChing2010TC" mechanism)
 # Tags: calcium, buffer, intrinsic, thalamus
-neuron_eqns: |
+population_equations: |
     # ODEs and ICs
     dCaBuffer/dt = clip(((-10.*I_T)/uA/(2.*96489)), 0, 5)/ms + (0.00024/ms-CaBuffer/ms)/5 : 1
     

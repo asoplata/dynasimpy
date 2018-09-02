@@ -1,38 +1,33 @@
 from brian2 import *
+import copy
 import os
 
-class SimulatorOptions:
-    def __init__(self):
+
+class Metadata:
+    """
+    TODO
+
+    The Metadata.simulator_options attribute is a dict, where keys are the flags/options, and the values are...the
+    values of those flags/options.
+
+    Currently supported flags/options are:
+        output_directory : bool
+    """
+    def __init__(self, filename:str = None):
         # note there is NO vary by default
 
-        # Solver options
-        self.solver = 'rk4'
-        self.tspan = [0, 100*ms]
-        self.dt = 0.01*ms
-        # TODO initialize randomization
-        self.random_seed = 1
+        self.simulator_options = {}
+        self.variations = {}
 
-        # Optimization options
-        self.compile_flag = False
+        if filename:
+            print('TODO')
 
-        # Saved data/results options
-        self.save_results_flag = False
-        self.save_data_flag = False
-        self.overwrite_flag = False
-        self.study_dir = os.getcwd()
-
-        # Cluster computing
-        self.cluster_flag = False
-        self.memory_limit = '8G'
-
-        # Multicore computing
-        self.multicore_flag = False
-
-        # Postprocessing
-        self.analysis_functions = {}
-        self.analysis_options = {}
-        self.plot_functions = {}
-        self.plot_options = {}
+        # # Solver options
+        # self.solver = 'rk4'
+        # self.tspan = [0, 100*ms]
+        # self.dt = 0.01*ms
+        # # TODO initialize randomization
+        # self.random_seed = 1
 
         # original options from dynasim:
         # solver options (provided as key/value pairs: 'option1',value1,'option2',value2,...):
@@ -94,20 +89,45 @@ class SimulatorOptions:
         #   'debug_flag'    : set to debug mode
         #   'benchmark_flag': set to benchmark mode. will add tic/toc to sims.
 
-    def validate_options(self, options):
-        """TODO: Docstring for validate_options.
-        :returns: TODO
-
+    def create_output_location(self):
         """
-        print('in validate_options')
-        print('--> options, formerly kwargs-vary, is {}'.format(options))
-        # Update SimulatorOptions object from dspy.simulate arguments
-        for key, value in options.items():
-            # TODO check for malformed option
-            setattr(self, key, value)
+        Use the location in Metadata.simulator_options['output_directory'] to make the output directory and
+        subdirectories ('data', 'notebooks', 'plots', and 'scripts') in that location. The given directory can be either
+        relative or absolute.
+        :return: output_dir
+        :rtype: str
+        """
 
-        # TODO actual validation lol
-        return(self)
+        output_dir = copy.deepcopy(self.simulator_options['output_directory'])
 
+        if not os.path.isabs(output_dir):
+            output_dir = os.path.join(os.getcwd(), output_dir)
 
+        dirs_to_create = [output_dir,
+                          os.path.join(output_dir, 'data'),
+                          os.path.join(output_dir, 'notebooks'),
+                          os.path.join(output_dir, 'plots'),
+                          os.path.join(output_dir, 'scripts')]
+        for directory in dirs_to_create:
+            if not os.path.exists(directory):
+                os.mkdir(directory)
 
+        return output_dir
+
+    def validate(self):
+        """
+        Ensure that all the minimum necessary flags/options are present in Metadata.simulator_options.
+        :return:
+        """
+        required_options = ['jupyter_flag',
+                            'output_directory',
+                            'preprocessed_flag',
+                            'simulation_number',
+                            'standalone_flag']
+
+        for option in required_options:
+            try:
+                self.simulator_options[option]
+            except KeyError:
+                print("The '{}' flag/option is required to be present in Metadata.simulator_options!".format(option))
+                raise
