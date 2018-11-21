@@ -1,0 +1,7 @@
+# Install these with `pip install -r development-packages-list.txt`
+# These packages are for help with actual development itself, NOT for running DynaSimPy
+
+configparser
+futures
+neovim
+python-language-server[all]

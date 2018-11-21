@@ -13,3 +13,4 @@ dynasimpy/dynasimpy/__pycache__
 dynasimpy/dynasimpy/*.egg-info
 tags
 testing
+venv

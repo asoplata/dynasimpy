@@ -1,0 +1,11 @@
+brian2
+cython
+ipython
+jsonpickle
+jupyter
+matplotlib
+nose
+pandas
+pyyaml
+sympy
+wheel
