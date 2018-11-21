@@ -7,5 +7,9 @@
 .smt
 __pycache__/*
 backup
+dynasimpy/__pycache__
+dynasimpy/*.egg-info
+dynasimpy/dynasimpy/__pycache__
+dynasimpy/dynasimpy/*.egg-info
 tags
 testing
