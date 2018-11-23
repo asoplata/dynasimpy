@@ -346,6 +346,7 @@ net = Network(collect())  # automatically include G and S
 #         syn_data2, syn_data3, spikes)  # manually add the monitors
 
 net.add(tc_data, re_data, syn_data2, syn_data3, spikes)  # manually add the monitors
+
 # net.run(10*ms)
 # AES 20170603
 run(timelength, report='text')
