@@ -27,7 +27,7 @@ class BrianModel:
             for mechanism in self.connections[cxn]['mechanisms']:
                 self.connections[cxn][mechanism] = {}
 
-        # overall process:
+        # Overall process:
         # 1.0 Load and convert connections from specification
         # 2.0 Load and convert populations from specification
         # 3.0 Build complete equations string for each neuron type

@@ -3,5 +3,6 @@
 
 configparser
 futures
-neovim
-python-language-server[all]
+# neovim
+# python-language-server[all]
+virtualenv

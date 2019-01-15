@@ -387,6 +387,7 @@ plot(re_data.t/ms, re_data[0].v/mV)
 plot(spikes.t/ms, spikes.i, '.')
 
 
+
 plot(syn_data2.t/ms, syn_data2[0].sAMPAtotal)
 
 figure()
